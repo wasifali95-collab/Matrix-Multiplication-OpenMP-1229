@@ -42,10 +42,11 @@ int main() {
     srand(time(NULL));
 
     int sizes[] = {200, 500, 1000}; // Three matrix sizes
+    int num_threads[] = {1, 4, 8};  // Threads used (for reference, even in sequential)
 
     for (int s = 0; s < 3; s++) {
         int size = sizes[s];
-        printf("\n=== Matrix Size: %dx%d (Sequential) ===\n", size, size);
+        printf("\n=== Matrix Size: %dx%d | Threads: %d (Sequential) ===\n", size, size, num_threads[s]);
 
         // Allocate memory
         int** A = allocate_matrix(size);
