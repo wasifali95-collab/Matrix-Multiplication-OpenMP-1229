@@ -27,9 +27,9 @@ void initialize_matrix(int** matrix, int size) {
             matrix[i][j] = rand() % 100;
 }
 
-// Function to multiply matrices using OpenMP with dynamic thread selection
-void multiply_matrices_parallel(int** A, int** B, int** C, int size, int num_threads) {
-    #pragma omp parallel for num_threads(num_threads) collapse(2)
+// Function to multiply matrices using OpenMP with dynamic scheduling
+void multiply_matrices_parallel(int** A, int** B, int** C, int size, int num_threads, int chunk_size) {
+    #pragma omp parallel for num_threads(num_threads) collapse(2) schedule(dynamic, chunk_size)
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             C[i][j] = 0;
@@ -43,13 +43,15 @@ void multiply_matrices_parallel(int** A, int** B, int** C, int size, int num_thr
 int main() {
     srand(time(NULL));
 
-    int sizes[] = {200, 500, 1000};  // Three matrix sizes
-    int threads[] = {1, 4, 8};       // Corresponding thread counts
+    int sizes[] = {200, 500, 1000};  // Matrix sizes
+    int threads[] = {1, 4, 8};       // Number of threads
+    int chunk_sizes[] = {10, 20, 50}; // Different chunk sizes
 
     for (int s = 0; s < 3; s++) {
         int size = sizes[s];
         int num_threads = threads[s];
-        printf("\n=== Matrix Size: %dx%d | Threads: %d (Parallel) ===\n", size, size, num_threads);
+        int chunk_size = chunk_sizes[s];
+        printf("\n=== Matrix Size: %dx%d | Threads: %d | Chunk Size: %d ===\n", size, size, num_threads, chunk_size);
 
         // Allocate memory
         int** A = allocate_matrix(size);
@@ -65,7 +67,7 @@ int main() {
         // Run the parallel version multiple times
         for (int run = 0; run < RUNS; run++) {
             double start = omp_get_wtime();
-            multiply_matrices_parallel(A, B, C, size, num_threads);
+            multiply_matrices_parallel(A, B, C, size, num_threads, chunk_size);
             double end = omp_get_wtime();
             double time_taken = end - start;
             total_time += time_taken;
@@ -81,8 +83,5 @@ int main() {
         free_matrix(C, size);
     }
 
-    
-    
-    
     return 0;
 }
